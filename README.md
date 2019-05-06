@@ -1,7 +1,7 @@
 # restq
 Simple REST queue daemon
 
-## Protocol
+## Request
 
 ### pull
 POST /URI_PREFIX/queue_name
@@ -49,14 +49,30 @@ POST /URI_PREFIX/queue_name
 ```
 `Extend` message locked time.
 
+## Response
+### For pull request status 200
+```
+{
+  "uuid": "251d36de-6ce7-11e9-a923-1681be663d3e",
+  "body": "bla-bla text",
+  "created": 1557158257,         // epoch time
+  "ttl": 10                      // seconds
+}
+```
+
+### For push request status 201 (Created)
+
+### For ack request status 200
+
+### For ext reuest status 200
 
 ## Configuration
 Environment variables:
 * `RESTQ_BIND_IP=0.0.0.0` listen on specified IP address
 * `RESTQ_BIND_PORT=8080` bind to port
 * `RESTQ_PREFIX_URI=/` URI prefix
-* `RESTQ_DB_FILE_PATH=/tmp/restq.db` flush current queue data to file
-* `RESTQ_DB_FILE_UPDATE_INTERVAL=10` flush interval in seconds
+* `RESTQ_DB_FILE_PATH=/tmp/restq.db` flush current queue data to file, set path to something reliable
+* `RESTQ_DB_FILE_UPDATE_INTERVAL=10` flush interval in seconds, 0 - no flush data on disk
 * `RESTQ_GARBAGE_CLEANER_INTERVAL=10` in seconds, regular job to clean up all closed messages from the queue
 * `RESTQ_MESSAGE_EXPIRE_DAYS=2` time-to-live for all not updated messages, if message is not handled during expiration interval, it will be removed from queue
 
