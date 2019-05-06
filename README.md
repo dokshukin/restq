@@ -67,6 +67,7 @@ Environment variables:
 * backgroud garbage cleaninig process
 
 ### v0.2
+* generate UUIDs with go
 * add GET requests
 * work with some external DB (f.e. BoltDB)
 
