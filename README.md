@@ -60,13 +60,8 @@ Environment variables:
 * `RESTQ_GARBAGE_CLEANER_INTERVAL=10` in seconds, regular job to clean up all closed messages from the queue
 * `RESTQ_MESSAGE_EXPIRE_DAYS=2` time-to-live for all not updated messages, if message is not handled during expiration interval, it will be removed from queue
 
-## Roadmap 
-### v0.1
-* make HTTP API
-* save regulary data on disk
-* backgroud garbage cleaninig process
+## To do 
 
-### v0.2
 * generate UUIDs with go
 * add GET requests
 * work with some external DB (f.e. BoltDB)
