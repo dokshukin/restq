@@ -19,6 +19,7 @@ before_install:
   - sudo apt-get -qq update
 
 install:
+  - apt install upx
   - go get -u github.com/dokshukin/$MYAPP
   - cd $GOPATH/src/github.com/dokshukin/$MYAPP
   - go install
@@ -26,8 +27,10 @@ install:
 # build the app,build the package
 before_deploy:
   - mkdir -p build/{386,amd64}
-  - GOOS=linux GOARCH=386   go build --ldflags "-X main.version=${TRAVIS_TAG} -X main.build=${TRAVIS_BUILD_NUMBER} -X main.commit=${TRAVIS_COMMIT}" -o build/386/${MYAPP}-386 *.go
-  - GOOS=linux GOARCH=amd64 go build --ldflags "-X main.version=${TRAVIS_TAG} -X main.build=${TRAVIS_BUILD_NUMBER} -X main.commit=${TRAVIS_COMMIT}" -o build/amd64/${MYAPP}-amd64 *.go
+  - GOOS=linux GOARCH=386   go build --ldflags "-s -w -X main.version=${TRAVIS_TAG} -X main.build=${TRAVIS_BUILD_NUMBER} -X main.commit=${TRAVIS_COMMIT}" -o build/386/${MYAPP}-386 *.go
+  - upx build/386/${MYAPP}-386
+  - GOOS=linux GOARCH=amd64 go build --ldflags "-s -w -X main.version=${TRAVIS_TAG} -X main.build=${TRAVIS_BUILD_NUMBER} -X main.commit=${TRAVIS_COMMIT}" -o build/amd64/${MYAPP}-amd64 *.go
+  - upx build/amd64/${MYAPP}-amd64
 
 deploy:
   provider: releases
