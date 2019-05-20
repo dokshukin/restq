@@ -19,7 +19,7 @@ before_install:
   - sudo apt-get -qq update
 
 install:
-  - apt install upx
+  - apt install -y upx
   - go get -u github.com/dokshukin/$MYAPP
   - cd $GOPATH/src/github.com/dokshukin/$MYAPP
   - go install
