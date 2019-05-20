@@ -17,7 +17,7 @@ env:
 
 before_install:
   - sudo apt-get -qq update
-  - apt-get install -y upx
+  - sudo apt-get install -y upx
 
 install:
   - go get -u github.com/dokshukin/$MYAPP
