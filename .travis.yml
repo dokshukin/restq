@@ -4,7 +4,7 @@ go:
   - tip # The latest version of Go.
 
 git:
-  depth: 1
+  depth: 3
 
 install: true
 
@@ -12,6 +12,7 @@ env:
   global:
     - MYAPP=restq
     - MYEMAIL=dokshukin@gmail.com
+    - TRAVIS_TAG=0.1
     - secure: ${GITHUB_TOKEN}
 
 before_install:
