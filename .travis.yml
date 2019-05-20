@@ -1,0 +1,42 @@
+language: go
+
+go:
+  - tip # The latest version of Go.
+
+git:
+  depth: 1
+
+install: true
+
+env:
+  global:
+    - MYAPP=restq
+    - MYEMAIL=dokshukin@gmail.com
+    - secure: ${GITHUB_TOKEN}
+
+before_install:
+  - sudo apt-get -qq update
+
+install:
+  - go get -u github.com/dokshukin/$MYAPP
+  - cd $GOPATH/src/github.com/dokshukin/$MYAPP
+  - go install
+
+# build the app,build the package
+before_deploy:
+  - mkdir -p build/{386,amd64}
+  - GOOS=linux GOARCH=386   go build --ldflags "-X main.version=${TRAVIS_TAG} -X main.build=${TRAVIS_BUILD_NUMBER} -X main.commit=${TRAVIS_COMMIT}" -o build/386/${MYAPP}-386 *.go
+  - GOOS=linux GOARCH=amd64 go build --ldflags "-X main.version=${TRAVIS_TAG} -X main.build=${TRAVIS_BUILD_NUMBER} -X main.commit=${TRAVIS_COMMIT}" -o build/amd64/${MYAPP}-amd64 *.go
+
+deploy:
+  provider: releases
+  email: ${MYEMAIL}
+  api_key:
+    secure: ${GITHUB_TOKEN}
+  file:
+    - build/386/${MYAPP}-386
+    - build/amd64/${MYAPP}-amd64
+  skip_cleanup: true
+  on:
+    tags: true
+    all_branches: true
