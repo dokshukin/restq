@@ -6,13 +6,10 @@ go:
 git:
   depth: 3
 
-install: true
-
 env:
   global:
     - MYAPP=restq
     - MYEMAIL=dokshukin@gmail.com
-    - TRAVIS_TAG=0.1
     - secure: ${GITHUB_TOKEN}
 
 before_install:
@@ -43,4 +40,4 @@ deploy:
   skip_cleanup: true
   on:
     tags: true
-    all_branches: true
+    branch: master
