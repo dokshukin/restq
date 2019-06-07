@@ -78,7 +78,7 @@ Environment variables:
 
 ## To do 
 
-* -generate UUIDs with go-
+* ~~generate UUIDs with go~~
 * add GET requests
 * work with some external DB (f.e. BoltDB)
 
