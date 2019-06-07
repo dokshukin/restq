@@ -1,10 +1,11 @@
 package main
 
 import (
+	"crypto/rand"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
-	"os/exec"
 	"strconv"
 	"sync"
 	"time"
@@ -126,8 +127,7 @@ func messagePull(queue string, req request) (res response, err error) {
 
 func messagePush(queue string, req request) {
 	// assemble message
-	// TODO: normal uuid generator (if needed)
-	u, _ := exec.Command("uuidgen").Output()
+	u, _ := genUUID()
 	t := time.Now()
 	msg := message{
 		Body:     req.Message.Body,
@@ -136,7 +136,7 @@ func messagePush(queue string, req request) {
 		Expires:  t,
 		TTL:      req.Message.TTL,
 		Status:   Open,
-		UUID:     string(u[0 : len(u)-1]),
+		UUID:     u,
 	}
 
 	// push msg to queue
@@ -218,4 +218,15 @@ func queueCleaner() {
 			}
 		}
 	}
+}
+
+func genUUID() (uuid string, err error) {
+	b := make([]byte, 16)
+	_, err = rand.Read(b)
+	if err != nil {
+		return
+	}
+	uuid = fmt.Sprintf("%x-%x-%x-%x-%x",
+		b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
+	return
 }
