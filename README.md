@@ -46,7 +46,7 @@ POST /URI_PREFIX/queue_name
 {
   "action": "ext",
   "message": {
-    "uuid": "251d36de-6ce7-11e9-a923-1681be663d3e"    // mandatory field
+    "uuid": "251d36de-6ce7-11e9-a923-1681be663d3e",   // mandatory field
     "ttl": 10                                         // mandatory field
   }
 }
@@ -85,6 +85,8 @@ Environment variables:
 * ~~generate UUIDs with go~~
 * add GET requests
 * work with some external DB (f.e. BoltDB)
+* get message by id
+* read messages without removal (current workaround is *pull* from the queue w/o *ack*)
 
 ## Internal message structure
 ```
