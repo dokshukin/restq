@@ -10,6 +10,7 @@ POST /URI_PREFIX/queue_name
   "action": "pull", 
   "message": {                                // optional
     "ttl": 0                                  // optional
+  }
 }
 ```
 `message` is not mandatory field. 
@@ -23,6 +24,7 @@ POST /URI_PREFIX/queue_name
   "message": {
     "body": "anything could be set here",   // mandatory field
     "ttl": 10                               // optional, by default 10
+  }
 }
 ```
 
@@ -33,6 +35,7 @@ POST /URI_PREFIX/queue_name
   "action": "ack",
   "message": {
     "uuid": "251d36de-6ce7-11e9-a923-1681be663d3e"   // mandatory field
+  }
 }
 ```
 `Acknowlege` message had been handled by consumer and should be removed from the queue.
@@ -45,6 +48,7 @@ POST /URI_PREFIX/queue_name
   "message": {
     "uuid": "251d36de-6ce7-11e9-a923-1681be663d3e"    // mandatory field
     "ttl": 10                                         // mandatory field
+  }
 }
 ```
 `Extend` message locked time.
