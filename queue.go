@@ -110,7 +110,8 @@ func messagePull(queue string, req request) (res response, err error) {
 				// todo: make a transaction
 				QueueList[queue][key].Status = Locked
 				QueueList[queue][key].Modified = t
-				QueueList[queue][key].Expires = t.Add(time.Duration(req.Message.TTL) * time.Second)
+				QueueList[queue][key].Expires = t.Add(
+					time.Duration(req.Message.TTL) * time.Second)
 				QueueList[queue][key].TTL = req.Message.TTL
 			}
 			mutex.Unlock()
@@ -154,7 +155,8 @@ func messageExtend(queue string, req request) (err error) {
 				if req.Message.TTL > 0 {
 					QueueList[queue][k].TTL = req.Message.TTL
 				}
-				QueueList[queue][k].Expires = time.Now().Add(time.Duration(QueueList[queue][k].TTL) * time.Second)
+				QueueList[queue][k].Expires = time.Now().Add(
+					time.Duration(QueueList[queue][k].TTL) * time.Second)
 				mutex.Unlock()
 				flagMsgExists = true
 				break
@@ -193,7 +195,8 @@ func messageAck(queue string, req request) (err error) {
 func queueCleaner() {
 	garbageCleanerInterval := 10 //sec
 	if len(os.Getenv("RESTQ_GARBAGE_CLEANER_INTERVAL")) > 0 {
-		garbageCleanerInterval, _ = strconv.Atoi(os.Getenv("RESTQ_GARBAGE_CLEANER_INTERVAL"))
+		garbageCleanerInterval, _ = strconv.Atoi(
+			os.Getenv("RESTQ_GARBAGE_CLEANER_INTERVAL"))
 	}
 	msgExpireDays := 2 //days
 	if len(os.Getenv("RESTQ_MESSAGE_EXPIRE_DAYS")) > 0 {
@@ -205,14 +208,16 @@ func queueCleaner() {
 			for key := 0; key < len(QueueList[queue]); key++ {
 				if QueueList[queue][key].Status == Closed {
 					mutex.Lock()
-					QueueList[queue] = append(QueueList[queue][:key], QueueList[queue][key+1:]...)
+					QueueList[queue] = append(QueueList[queue][:key],
+						QueueList[queue][key+1:]...)
 					mutex.Unlock()
 					key++
 				} else if QueueList[queue][key].Status == Locked &&
 					QueueList[queue][key].Expires.Unix() < time.Now().Unix() {
 					mutex.Lock()
 					QueueList[queue][key].Status = Open
-					QueueList[queue][key].Expires = time.Now().Add((time.Duration(msgExpireDays) * time.Hour * 24))
+					QueueList[queue][key].Expires = time.Now().
+						Add((time.Duration(msgExpireDays) * time.Hour * 24))
 					mutex.Unlock()
 				}
 			}
