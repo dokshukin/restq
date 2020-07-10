@@ -95,7 +95,7 @@ func messagePull(queue string, req request) (res response, err error) {
 
 	flagMsgExists := false
 	for key, msg := range QueueList[queue] {
-		if msg.Status == Open {
+		if msg.Status == statusOpen {
 			mutex.Lock()
 			res = response{
 				Body:    msg.Body,
@@ -105,10 +105,10 @@ func messagePull(queue string, req request) (res response, err error) {
 			}
 			t := time.Now()
 			if req.Message.TTL == 0 {
-				QueueList[queue][key].Status = Closed
+				QueueList[queue][key].Status = statusClosed
 			} else {
 				// todo: make a transaction
-				QueueList[queue][key].Status = Locked
+				QueueList[queue][key].Status = statusLocked
 				QueueList[queue][key].Modified = t
 				QueueList[queue][key].Expires = t.Add(
 					time.Duration(req.Message.TTL) * time.Second)
@@ -136,7 +136,7 @@ func messagePush(queue string, req request) {
 		Modified: t,
 		Expires:  t,
 		TTL:      req.Message.TTL,
-		Status:   Open,
+		Status:   statusOpen,
 		UUID:     u,
 	}
 
@@ -177,7 +177,7 @@ func messageAck(queue string, req request) (err error) {
 		for k, v := range QueueList[queue] {
 			if v.UUID == req.Message.UUID {
 				mutex.Lock()
-				QueueList[queue][k].Status = Closed
+				QueueList[queue][k].Status = statusClosed
 				mutex.Unlock()
 				flagMsgExists = true
 				break
@@ -193,31 +193,42 @@ func messageAck(queue string, req request) (err error) {
 }
 
 func queueCleaner() {
-	garbageCleanerInterval := 10 //sec
-	if len(os.Getenv("RESTQ_GARBAGE_CLEANER_INTERVAL")) > 0 {
+	// TODO move it to config
+	msgExpireDays := defaultMsgExpireDays
+	if len(os.Getenv(envMessageExpireDays)) > 0 {
+		msgExpireDays, _ = strconv.Atoi(
+			os.Getenv(envMessageExpireDays))
+	}
+	garbageCleanerInterval := defaultGarbageCleanerInterval // sec
+	if len(os.Getenv(envGarbageCleanerInterval)) > 0 {
 		garbageCleanerInterval, _ = strconv.Atoi(
-			os.Getenv("RESTQ_GARBAGE_CLEANER_INTERVAL"))
+			os.Getenv(envGarbageCleanerInterval))
 	}
-	msgExpireDays := 2 //days
-	if len(os.Getenv("RESTQ_MESSAGE_EXPIRE_DAYS")) > 0 {
-		msgExpireDays, _ = strconv.Atoi(os.Getenv("RESTQ_MESSAGE_EXPIRE_DAYS"))
+	msgAckExpireSec := defaultLockTimeoutSec // sec
+	if len(os.Getenv(envMessageLockTimeoutSec)) > 0 {
+		msgAckExpireSec, _ = strconv.Atoi(os.Getenv(envMessageLockTimeoutSec))
 	}
+
 	for {
 		time.Sleep(time.Duration(garbageCleanerInterval) * time.Second)
 		for queue := range QueueList {
 			for key := 0; key < len(QueueList[queue]); key++ {
-				if QueueList[queue][key].Status == Closed {
-					mutex.Lock()
-					QueueList[queue] = append(QueueList[queue][:key],
-						QueueList[queue][key+1:]...)
-					mutex.Unlock()
+				if QueueList[queue][key].Status == statusClosed {
+					// remove closed messages
+					removeFromQueue(queue, key)
 					key++
-				} else if QueueList[queue][key].Status == Locked &&
+				} else if msgExpireDays > 0 &&
+					(QueueList[queue][key].Expires.Unix()+int64(msgExpireDays*60*60*24) < time.Now().Unix()) {
+					// remove expired messages
+					removeFromQueue(queue, key)
+					key++
+				} else if QueueList[queue][key].Status == statusLocked &&
 					QueueList[queue][key].Expires.Unix() < time.Now().Unix() {
+					// unlock non ACK message after timeout
 					mutex.Lock()
-					QueueList[queue][key].Status = Open
+					QueueList[queue][key].Status = statusOpen
 					QueueList[queue][key].Expires = time.Now().
-						Add((time.Duration(msgExpireDays) * time.Hour * 24))
+						Add((time.Duration(msgAckExpireSec)))
 					mutex.Unlock()
 				}
 			}
@@ -233,5 +244,13 @@ func genUUID() (uuid string, err error) {
 	}
 	uuid = fmt.Sprintf("%x-%x-%x-%x-%x",
 		b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
+	return
+}
+
+func removeFromQueue(queue string, key int) {
+	mutex.Lock()
+	QueueList[queue] = append(QueueList[queue][:key],
+		QueueList[queue][key+1:]...)
+	mutex.Unlock()
 	return
 }
